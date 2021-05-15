@@ -7,7 +7,7 @@ target/
 !**/src/test/**/target/
 
 ### 无需测试类
-src/test
+src/test/
 
 ### 无需mvn版本的管理
 .mvn/
