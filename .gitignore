@@ -6,9 +6,6 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### 无需测试类
-src/test/java/com/jsy/chessgameserver
-
 ### 无需mvn版本的管理
 .mvn/
 #!.mvn/wrapper/maven-wrapper.jar

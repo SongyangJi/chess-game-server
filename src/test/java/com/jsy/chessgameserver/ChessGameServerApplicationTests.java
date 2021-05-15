@@ -52,7 +52,6 @@ class ChessGameServerApplicationTests {
 //        String s;
 //        System.out.println(s =JsonUtil.stringfy(student));
 //        System.out.println(JsonUtil.parse(s));
-
     }
 
 }
