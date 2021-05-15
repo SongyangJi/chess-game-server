@@ -1,6 +1,8 @@
 package com.jsy.chessgameserver.websocket;
 
+import com.jsy.chessgameserver.dto.ChatMessage;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,9 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @ServerEndpoint(value = "/topic/{room}",
         decoders = {
-                MessageDecoder.class,},
+                ChatMessageDecoder.class},
         encoders = {
-                MessageEncoder.class
+                ChatMessageEncoder.class
         })
 @Component
 public class TopicEndpoint {
@@ -47,8 +49,8 @@ public class TopicEndpoint {
             if (!rooms.containsKey(roomId)) {
                 room = RoomPool.acquireRoom(roomId);
                 if (room != null) {
-                    this.roomId = roomId;
                     rooms.put(roomId, room);
+                    this.roomId = roomId;
                 }
             } else {
                 room = rooms.get(roomId);
@@ -74,14 +76,30 @@ public class TopicEndpoint {
         log.info("websocket session {} open, in room {}", session, room);
     }
 
+//    @OnMessage
+//    public void broker(String textMessage) {
+//        textMessage = channel.getId() + "说： " + textMessage;
+//        try {
+//            room.broadcast(textMessage);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    @SneakyThrows
     @OnMessage
-    public void broker(String textMessage) {
-        textMessage = channel.getId() + "说： " + textMessage;
-        try {
-            room.broadcast(textMessage);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void broker(ChatMessage chatMessage) {
+        room.broadcast(chatMessage);
+    }
+
+
+    @SneakyThrows
+    @OnError
+    public void error(Session session, Throwable throwable) {
+        log.error("session:{} in room:{}_{}", session.getId(), this
+                .roomId, throwable.getMessage(), throwable);
+        session.close();
+        close( new CloseReason(null,"socket error"));
     }
 
 
