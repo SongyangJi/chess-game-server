@@ -1,7 +1,8 @@
 package com.jsy.chessgameserver.websocket;
 
 import lombok.Getter;
-import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
@@ -16,6 +17,8 @@ import java.util.concurrent.Future;
  */
 
 @Getter
+@ToString
+@Slf4j
 public class Channel {
 
     private final Session session;
@@ -26,13 +29,12 @@ public class Channel {
         this.id = id;
     }
 
-    protected Channel(Session session) {
-        this(session,session.getId());
+    public Channel(Session session) {
+        this(session, session.getId());
     }
 
 
-
-    void sendText(String text) throws IOException {
+    public void sendText(String text) throws IOException {
         session.getBasicRemote().sendText(text);
     }
 
@@ -40,12 +42,23 @@ public class Channel {
         return session.getAsyncRemote().sendText(text);
     }
 
-    void sendObject(Object object) throws IOException, EncodeException {
+    public void sendObject(Object object) throws IOException, EncodeException {
         session.getBasicRemote().sendObject(object);
     }
 
     Future<Void> sendObjectAsync(Object object) {
         return session.getAsyncRemote().sendObject(object);
+    }
+
+
+    void destroy() {
+        if (session.isOpen()) {
+            try {
+                session.close();
+            } catch (IOException e) {
+                log.error("session 关闭异常 {} session_id:{}_{}", session, session.getId(), e.getMessage(), e);
+            }
+        }
     }
 
 }
