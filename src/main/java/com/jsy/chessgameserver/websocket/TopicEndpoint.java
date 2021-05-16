@@ -2,7 +2,6 @@ package com.jsy.chessgameserver.websocket;
 
 import com.jsy.chessgameserver.dto.ChatMessage;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -45,16 +44,14 @@ public class TopicEndpoint {
     @OnOpen
     public void open(@PathParam("room") @NonNull String roomId, Session session) {
         log.info("TopicEndpoint bean is {}", this);
-        synchronized (rooms) {
-            if (!rooms.containsKey(roomId)) {
-                room = RoomPool.acquireRoom(roomId);
-                if (room != null) {
-                    rooms.put(roomId, room);
-                    this.roomId = roomId;
-                }
-            } else {
-                room = rooms.get(roomId);
+        if (!rooms.containsKey(roomId)) {
+            room = RoomPool.acquireRoom(roomId);
+            if (room != null) {
+                rooms.put(roomId, room);
+                this.roomId = roomId;
             }
+        } else {
+            room = rooms.get(roomId);
         }
 
         /*
@@ -73,7 +70,7 @@ public class TopicEndpoint {
 
         channel = new Channel(session);
         room.addChannel(channel);
-        log.info("websocket session {} open, in room {}", session, room);
+        log.info("websocket session {} open, in room {};\n Endpoint bean is {}", session, room, this);
     }
 
 //    @OnMessage
@@ -86,20 +83,19 @@ public class TopicEndpoint {
 //        }
 //    }
 
-    @SneakyThrows
     @OnMessage
     public void broker(ChatMessage chatMessage) {
         room.broadcast(chatMessage);
     }
 
 
-    @SneakyThrows
     @OnError
     public void error(Session session, Throwable throwable) {
+        channel.destroy();
+        // 出错就要关闭
+        close(new CloseReason(null, "socket error"));
         log.error("session:{} in room:{}_{}", session.getId(), this
                 .roomId, throwable.getMessage(), throwable);
-        session.close();
-        close( new CloseReason(null,"socket error"));
     }
 
 
@@ -107,11 +103,9 @@ public class TopicEndpoint {
     public void close(CloseReason reason) {
         // 房间已销毁
         if (room.removeChannel(channel)) {
-            synchronized (rooms) {
-                // 此时 room 已经被清空状态了
-                rooms.remove(roomId);
-                log.info("房间 {} 已销毁", roomId);
-            }
+            // 此时 room 已经被清空状态了
+            rooms.remove(roomId);
+            log.info("房间 {} 被销毁", roomId);
         }
         log.info("Closing a webSocket session {} due to {}", channel.getSession(), reason.getReasonPhrase());
     }

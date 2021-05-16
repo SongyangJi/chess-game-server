@@ -36,6 +36,7 @@ public class QueueEndpoint {
 
     private static final Map<String, Channel> channels;
 
+    Channel channel;
 
     static {
         channels = new ConcurrentHashMap<>();
@@ -44,7 +45,8 @@ public class QueueEndpoint {
     @OnOpen
     public void open(@PathParam("routingKey") @NonNull String routingKey, Session session) {
         this.routingKey = routingKey;
-        channels.put(routingKey, new Channel(session));
+        channel = new Channel(session);
+        channels.put(routingKey, channel);
         log.info("socket {} create session{}_{}", routingKey, session.getId(), session);
     }
 
@@ -54,7 +56,7 @@ public class QueueEndpoint {
      * @param chatMessage 聊天消息体
      */
     @OnMessage
-    public void message(ChatMessage chatMessage,Session session) {
+    public void message(ChatMessage chatMessage, Session session) {
         String toKey = chatMessage.getTo();
         try {
             Channel channel = channels.get(toKey);
@@ -62,34 +64,26 @@ public class QueueEndpoint {
                 channel.sendObject(chatMessage);
             }
         } catch (IOException | EncodeException e) {
-            log.error("ChatMessage {} 发送失败_{}",chatMessage, e.getMessage(), e);
-            destroy(session);
+            log.error("ChatMessage {} 发送失败_{}", chatMessage, e.getMessage(), e);
+            destroy();
         }
     }
 
-    private void destroy(Session session) {
-        // 出错则关闭 session,
-        try {
-            if(session.isOpen()) {
-                session.close();
-            }
-        } catch (IOException e) {
-            log.error("session 关闭异常 {} session_id:{}_{}",session,session.getId(),e.getMessage(),e);
-        } finally {
-            channels.remove(this.routingKey);
-        }
+    private void destroy() {
+        channel.destroy();
+        channels.remove(this.routingKey);
     }
 
 
     @OnClose
     public void close(Session session, CloseReason reason) {
-        destroy(session);
+        destroy();
         log.info("Closing a webSocket session {} due to {}", session, reason.getReasonPhrase());
     }
 
     @OnError
     public void error(Session session, Throwable throwable) {
-        destroy(session);
+        destroy();
         log.error("session:{}_{}", session.getId(), throwable.getMessage(), throwable);
     }
 
