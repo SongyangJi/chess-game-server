@@ -23,7 +23,7 @@ public class Room {
     @Setter
     private String id;
 
-    private Map<Channel, Boolean> channels;
+    private final Map<Channel, Boolean> channels;
 
     public Room() {
         channels = new ConcurrentHashMap<>();
@@ -38,11 +38,19 @@ public class Room {
      * 同一个"房间"间消息发送方式 —— 广播消息
      *
      * @param text 字符串消息
-     * @throws IOException IO异常
      */
-    void broadcast(String text) throws IOException {
+    void broadcast(String text) {
         for (Channel channel : channels.keySet()) {
-            channel.sendText(text);
+            try {
+                channel.sendText(text);
+            } catch (IOException e) {
+                // 通道销毁
+                channel.destroy();
+                // 谁出错，移除谁，但是其他人不要影响
+                removeChannel(channel);
+                log.warn("消息 {} 发送失败", text);
+                log.error("Channel {} 出错_{}", channel, e.getMessage(), e);
+            }
         }
     }
 
@@ -50,34 +58,41 @@ public class Room {
      * 同一个"房间"间消息发送方式 —— 广播消息
      *
      * @param t 泛型对象
-     * @throws IOException IO异常
      */
-    <T> void broadcast(T t) throws IOException, EncodeException {
+
+    <T> void broadcast(T t) {
         for (Channel channel : channels.keySet()) {
-            channel.sendObject(t);
+            try {
+                channel.sendObject(t);
+            } catch (IOException | EncodeException e) {
+                // 通道销毁
+                channel.destroy();
+                // 谁出错，移除谁，但是其他人不要影响
+                removeChannel(channel);
+                log.warn("消息 {} 发送失败", t);
+                log.error("Channel {} 出错_{}", channel, e.getMessage(), e);
+            }
         }
     }
 
     void addChannel(Channel channel) {
-        channels.put(channel,true);
+        channels.put(channel, true);
     }
 
     boolean removeChannel(Channel channel) {
-        log.info("移除会话通道 {}", channel.getId());
         channels.remove(channel);
+        log.info("移除会话通道 {}", channel.getId());
         // 如果是空房间，则销毁房间，并返还给对象池
         return destroy();
     }
 
-//    void removeChannelById(String id) {
-//        channels.remove(id);
-//    }
 
 
     boolean destroy() {
         if (channels.isEmpty()) {
             log.info("房间 {} 清空", id);
             // 清空后返回对象池
+            initializeState();
             RoomPool.releaseRoom(this);
             return true;
         }
@@ -87,6 +102,10 @@ public class Room {
     void initializeState() {
         id = null;
         channels.clear();
+    }
+
+    int getRoomSize() {
+        return channels.size();
     }
 
 }
