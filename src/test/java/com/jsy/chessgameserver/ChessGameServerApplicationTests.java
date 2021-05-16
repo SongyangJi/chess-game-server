@@ -1,6 +1,7 @@
 package com.jsy.chessgameserver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jsy.chessgameserver.dto.ChatMessage;
 import com.jsy.chessgameserver.util.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,11 +48,14 @@ class ChessGameServerApplicationTests {
     }
 
     @Test
-    void contextLoads() throws IOException {
-//        Student student = new Student(1, "张三");
-//        String s;
-//        System.out.println(s =JsonUtil.stringfy(student));
-//        System.out.println(JsonUtil.parse(s));
+    void contextLoads() {
+
+    }
+
+    @Test
+    void testMessage() throws JsonProcessingException {
+//        ChatMessage message = new ChatMessage("1","2");
+//        System.out.println(JsonUtil.stringfy(message));
     }
 
 }

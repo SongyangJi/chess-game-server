@@ -1,8 +1,6 @@
 package com.jsy.chessgameserver.websocket;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @Author: Song yang Ji
@@ -77,7 +75,6 @@ public class RoomPool {
      */
     static void releaseRoom(Room room) {
         synchronized (pool) {
-            room.initializeState();
             pool.offer(room);
         }
     }
