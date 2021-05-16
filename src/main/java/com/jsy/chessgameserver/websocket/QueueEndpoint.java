@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -35,66 +36,60 @@ public class QueueEndpoint {
 
     private static final Map<String, Channel> channels;
 
-    private static final ReentrantReadWriteLock lock;
-
-    private static final Lock readLock;
-    private static final Lock writeLock;
-
 
     static {
         channels = new ConcurrentHashMap<>();
-        lock = new ReentrantReadWriteLock();
-        readLock = lock.readLock();
-        writeLock = lock.writeLock();
     }
 
     @OnOpen
     public void open(@PathParam("routingKey") @NonNull String routingKey, Session session) {
-        log.info("socket {} create session{}_{}", routingKey, session.getId(), session);
         this.routingKey = routingKey;
-        writeLock.lock();
-        try {
-            channels.put(routingKey, new Channel(session));
-        } finally {
-            writeLock.unlock();
-        }
+        channels.put(routingKey, new Channel(session));
+        log.info("socket {} create session{}_{}", routingKey, session.getId(), session);
     }
 
-    @SneakyThrows
+    /**
+     * ps:
+     *
+     * @param chatMessage 聊天消息体
+     */
     @OnMessage
-    public void message(ChatMessage chatMessage) {
-        readLock.lock();
+    public void message(ChatMessage chatMessage,Session session) {
+        String toKey = chatMessage.getTo();
         try {
-            if (channels.containsKey(chatMessage.getTo())) {
-                channels.get(chatMessage.getTo()).sendObject(chatMessage);
+            Channel channel = channels.get(toKey);
+            if (channel != null) {
+                channel.sendObject(chatMessage);
             }
-        } finally {
-            readLock.unlock();
+        } catch (IOException | EncodeException e) {
+            log.error("ChatMessage {} 发送失败_{}",chatMessage, e.getMessage(), e);
+            destroy(session);
         }
-
     }
 
-    private void destroy() {
-        writeLock.lock();
+    private void destroy(Session session) {
+        // 出错则关闭 session,
         try {
-            channels.remove(this.routingKey);
+            if(session.isOpen()) {
+                session.close();
+            }
+        } catch (IOException e) {
+            log.error("session 关闭异常 {} session_id:{}_{}",session,session.getId(),e.getMessage(),e);
         } finally {
-            writeLock.unlock();
+            channels.remove(this.routingKey);
         }
     }
 
 
     @OnClose
     public void close(Session session, CloseReason reason) {
-        destroy();
+        destroy(session);
         log.info("Closing a webSocket session {} due to {}", session, reason.getReasonPhrase());
     }
 
-    @SneakyThrows
     @OnError
     public void error(Session session, Throwable throwable) {
-        session.close();
-        destroy();
+        destroy(session);
         log.error("session:{}_{}", session.getId(), throwable.getMessage(), throwable);
     }
 
