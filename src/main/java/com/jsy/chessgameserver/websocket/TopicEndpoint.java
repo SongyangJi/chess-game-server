@@ -1,13 +1,11 @@
 package com.jsy.chessgameserver.websocket;
 
-import com.jsy.chessgameserver.dto.ChatMessage;
+import com.jsy.chessgameserver.dto.Message;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,25 +19,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 @Slf4j
-@ServerEndpoint(value = "/topic/{room}",
-        decoders = {
-                ChatMessageDecoder.class},
-        encoders = {
-                ChatMessageEncoder.class
-        })
-@Component
-public class TopicEndpoint {
+public abstract class TopicEndpoint {
 
     // 该会话所属的房间
-    private Room room = null;
+    protected Room room = null;
 
-    private String roomId = null;
+    protected String roomId = null;
 
     // 属于该会话的收发消息的通道
-    private Channel channel;
+    protected Channel channel;
 
 
-    private static final Map<String, Room> rooms = new ConcurrentHashMap<>();
+    protected static final Map<String, Room> rooms = new ConcurrentHashMap<>();
 
     @OnOpen
     public void open(@PathParam("room") @NonNull String roomId, Session session) {
@@ -70,22 +61,7 @@ public class TopicEndpoint {
 
         channel = new Channel(session);
         room.addChannel(channel);
-        log.info("websocket session {} open, in room {};\n Endpoint bean is {}", session, room, this);
-    }
-
-//    @OnMessage
-//    public void broker(String textMessage) {
-//        textMessage = channel.getId() + "说： " + textMessage;
-//        try {
-//            room.broadcast(textMessage);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
-    @OnMessage
-    public void broker(ChatMessage chatMessage) {
-        room.broadcast(chatMessage);
+        log.info("websocket session {} open, in room {};    Endpoint bean is {}", session, room, this);
     }
 
 
@@ -109,4 +85,10 @@ public class TopicEndpoint {
         }
         log.info("Closing a webSocket session {} due to {}", channel.getSession(), reason.getReasonPhrase());
     }
+
+
+    protected void broadcastMessage(Message message) {
+        room.broadcast(message);
+    }
+
 }

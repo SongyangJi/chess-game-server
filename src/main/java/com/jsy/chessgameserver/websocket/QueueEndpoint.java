@@ -1,19 +1,14 @@
 package com.jsy.chessgameserver.websocket;
 
-import com.jsy.chessgameserver.dto.ChatMessage;
+import com.jsy.chessgameserver.dto.Message;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @Author: Song yang Ji
@@ -22,15 +17,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @Description:
  */
 
+//@ServerEndpoint(value = "/queue/{routingKey}",
+//        decoders = {
+//                MessageDecoder.class},
+//        encoders = {
+//                MessageEncoder.class
+//        })
+//@Component
 @Slf4j
-@ServerEndpoint(value = "/queue/{routingKey}",
-        decoders = {
-                ChatMessageDecoder.class},
-        encoders = {
-                ChatMessageEncoder.class
-        })
-@Component
-public class QueueEndpoint {
+public abstract class QueueEndpoint {
 
     private String routingKey;
 
@@ -50,24 +45,6 @@ public class QueueEndpoint {
         log.info("socket {} create session{}_{}", routingKey, session.getId(), session);
     }
 
-    /**
-     * ps:
-     *
-     * @param chatMessage 聊天消息体
-     */
-    @OnMessage
-    public void message(ChatMessage chatMessage, Session session) {
-        String toKey = chatMessage.getTo();
-        try {
-            Channel channel = channels.get(toKey);
-            if (channel != null) {
-                channel.sendObject(chatMessage);
-            }
-        } catch (IOException | EncodeException e) {
-            log.error("ChatMessage {} 发送失败_{}", chatMessage, e.getMessage(), e);
-            destroy();
-        }
-    }
 
     private void destroy() {
         channel.destroy();
@@ -85,6 +62,20 @@ public class QueueEndpoint {
     public void error(Session session, Throwable throwable) {
         destroy();
         log.error("session:{}_{}", session.getId(), throwable.getMessage(), throwable);
+    }
+
+
+    protected void send(Message message) {
+        String toKey = message.getTo();
+        try {
+            Channel channel = channels.get(toKey);
+            if (channel != null) {
+                channel.sendObject(message);
+            }
+        } catch (IOException | EncodeException e) {
+            log.error("ChatMessage {} 发送失败_{}", message, e.getMessage(), e);
+            destroy();
+        }
     }
 
 }
