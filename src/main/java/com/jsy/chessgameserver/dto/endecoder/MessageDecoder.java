@@ -1,7 +1,8 @@
-package com.jsy.chessgameserver.websocket;
+package com.jsy.chessgameserver.dto.endecoder;
 
 
 import com.jsy.chessgameserver.dto.ChatMessage;
+import com.jsy.chessgameserver.dto.Message;
 import com.jsy.chessgameserver.util.JsonUtil;
 
 import javax.websocket.DecodeException;
@@ -16,18 +17,18 @@ import java.io.IOException;
  * @Description:
  */
 
-public class ChatMessageDecoder implements Decoder.Text<ChatMessage> {
+public class MessageDecoder implements Decoder.Text<Message> {
 
 
     @Override
-    public ChatMessage decode(String s) throws DecodeException {
-        ChatMessage chatMessage;
+    public Message decode(String s) throws DecodeException {
+        Message message;
         try {
-            chatMessage = JsonUtil.parse(s,ChatMessage.class);
+            message = JsonUtil.parse(s,Message.class);
         } catch (IOException e) {
             throw new DecodeException(s,"decode error");
         }
-        return chatMessage;
+        return message;
     }
 
     @Override

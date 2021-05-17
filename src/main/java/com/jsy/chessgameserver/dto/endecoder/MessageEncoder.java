@@ -1,6 +1,7 @@
-package com.jsy.chessgameserver.websocket;
+package com.jsy.chessgameserver.dto.endecoder;
 
 import com.jsy.chessgameserver.dto.ChatMessage;
+import com.jsy.chessgameserver.dto.Message;
 import com.jsy.chessgameserver.util.JsonUtil;
 import lombok.SneakyThrows;
 
@@ -14,12 +15,12 @@ import javax.websocket.EndpointConfig;
  * @Description:
  */
 
-public class ChatMessageEncoder implements Encoder.Text<ChatMessage> {
+public class MessageEncoder implements Encoder.Text<Message> {
 
 
     @SneakyThrows
     @Override
-    public String encode(ChatMessage object) {
+    public String encode(Message object) {
         return JsonUtil.stringfy(object);
     }
 
