@@ -3,6 +3,7 @@ package com.jsy.chessgameserver.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @Author: Song yang Ji
@@ -11,17 +12,17 @@ import lombok.Setter;
  * @Description:
  */
 
+@ToString
 @Getter
 @Setter
 @NoArgsConstructor
-public class ChatMessage {
+public class ChatMessage extends Message {
     String from;
     String to;
     String message;
 
     public ChatMessage(String from, String to, String message) {
-        this.from = from;
-        this.to = to;
+        super(from, to);
         this.message = message;
     }
 }
