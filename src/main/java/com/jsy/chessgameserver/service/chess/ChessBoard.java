@@ -1,5 +1,6 @@
-package com.jsy.chessgameserver.service;
+package com.jsy.chessgameserver.service.chess;
 
+import lombok.Getter;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,9 @@ public class ChessBoard {
     private static final int SIZE = 15;
     private final int[][] g;
 
+    @Getter
+    private int win = -1;
+
     public ChessBoard() {
         g = new int[SIZE][SIZE];
         for (int i = 0; i < SIZE; i++) {
@@ -27,6 +31,7 @@ public class ChessBoard {
 
 
     boolean occupy(int x, int y, int color) {
+        if(win != -1) return false;
         if (g[x][y] != -1) {
             return false;
         }
@@ -38,8 +43,14 @@ public class ChessBoard {
     boolean checkWin(int x, int y) {
         if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) return false;
         if (g[x][y] == -1) return false;
-        return checkHorizontal(x, y) || checkVertical(x,y)
+
+        boolean over = checkHorizontal(x, y) || checkVertical(x, y)
                 || checkDiagonal(x, y) || checkAntiDiagonal(x, y);
+
+        if (over) {
+            win = g[x][y];
+        }
+        return over;
     }
 
     private boolean checkHorizontal(int x, int y) {
