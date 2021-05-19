@@ -1,7 +1,6 @@
 package com.jsy.chessgameserver.dto.endecoder;
 
 
-import com.jsy.chessgameserver.dto.ChatMessage;
 import com.jsy.chessgameserver.dto.Message;
 import com.jsy.chessgameserver.util.JsonUtil;
 
@@ -18,7 +17,6 @@ import java.io.IOException;
  */
 
 public class MessageDecoder implements Decoder.Text<Message> {
-
 
     @Override
     public Message decode(String s) throws DecodeException {

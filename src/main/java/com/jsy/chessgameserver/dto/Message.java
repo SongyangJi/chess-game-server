@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.Date;
+
 /**
  * @Author: Song yang Ji
  * @ProjectName: chess-game-server
@@ -21,3 +23,7 @@ public class Message {
     private String to;
 
 }
+
+/*
+{   "from": "李四",   "to": "张三" }
+ */

@@ -17,7 +17,6 @@ import javax.websocket.EndpointConfig;
 
 public class MessageEncoder implements Encoder.Text<Message> {
 
-
     @SneakyThrows
     @Override
     public String encode(Message object) {
