@@ -1,9 +1,9 @@
 package com.jsy.chessgameserver.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
+
+import java.util.Date;
 
 /**
  * @Author: Song yang Ji
@@ -17,13 +17,20 @@ import lombok.ToString;
 @Setter
 @NoArgsConstructor
 public class ChatMessage extends Message {
-    String from;
-    String to;
-    String message;
+    private String message;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date date;
+
+    public ChatMessage(String from, String to, String message, Date date) {
+        super(from, to);
+        this.message = message;
+        this.date = date;
+    }
 
     public ChatMessage(String from, String to, String message) {
         super(from, to);
         this.message = message;
+        this.date = new Date();
     }
 }
 
