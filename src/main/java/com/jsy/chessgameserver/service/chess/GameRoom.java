@@ -2,9 +2,10 @@ package com.jsy.chessgameserver.service.chess;
 
 import com.jsy.chessgameserver.dto.chess.Dot;
 import com.jsy.chessgameserver.dto.chess.Role;
+import com.jsy.chessgameserver.dto.chess.GameRoomInfo;
+import com.jsy.chessgameserver.dto.chess.State;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import javax.annotation.Resource;
 @Scope("prototype")
 public class GameRoom {
 
+    @Getter
     @Setter
     private String roomId;
 
@@ -28,10 +30,12 @@ public class GameRoom {
     @Setter
     private Role owner, challenger;
 
+    private State state;
 
     private boolean gameOver = false, started = false;
 
-    private int turn;
+
+    private int turn = 0;
 
     private void changeTurn() {
         turn = 1 - turn;
@@ -69,23 +73,8 @@ public class GameRoom {
     }
 
 
-
-    @Getter
-    @Setter
-    @ToString
-    public static class RoomInfo {
-        String roomId;
-        private Role owner, challenger;
-
-        public RoomInfo(String roomId, Role owner, Role challenger) {
-            this.roomId = roomId;
-            this.owner = owner;
-            this.challenger = challenger;
-        }
-    }
-
-    public RoomInfo getRoomInfo() {
-        return new RoomInfo(roomId, owner,challenger);
+    public GameRoomInfo getRoomInfo() {
+        return new GameRoomInfo(roomId, owner, challenger, state);
     }
 
 
