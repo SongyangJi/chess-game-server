@@ -25,7 +25,7 @@ public class ChessBoard {
     public ChessBoard() {
         g = new int[SIZE][SIZE];
         for (int i = 0; i < SIZE; i++) {
-            Arrays.fill(g[0], -1);
+            Arrays.fill(g[i], -1);
         }
     }
 
