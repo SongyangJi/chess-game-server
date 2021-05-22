@@ -19,3 +19,14 @@ public enum State {
         this.description = description;
     }
 }
+
+/*
+
+{
+  "START": "START",
+  "READY": "READY",
+  "RUNNING": "RUNNING",
+  "FINISH": "FINISH",
+}
+
+ */

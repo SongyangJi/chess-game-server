@@ -1,5 +1,6 @@
 package com.jsy.chessgameserver.service;
 
+import com.jsy.chessgameserver.dto.chess.GameRoomInfo;
 import com.jsy.chessgameserver.service.chess.GameRoom;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public interface GameRoomService {
 
     String createRoom();
 
-    List<GameRoom.RoomInfo> getRoomList();
+    List<GameRoomInfo> getRoomList();
 
 }
 

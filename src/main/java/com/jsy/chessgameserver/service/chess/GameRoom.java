@@ -1,9 +1,6 @@
 package com.jsy.chessgameserver.service.chess;
 
-import com.jsy.chessgameserver.dto.chess.Dot;
-import com.jsy.chessgameserver.dto.chess.Role;
-import com.jsy.chessgameserver.dto.chess.GameRoomInfo;
-import com.jsy.chessgameserver.dto.chess.State;
+import com.jsy.chessgameserver.dto.chess.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;
@@ -30,14 +27,16 @@ public class GameRoom {
     @Setter
     private Role owner, challenger;
 
-    private State state;
+    @Getter
+    @Setter
+    private GameState gameState;
 
-    private boolean gameOver = false, started = false;
+    private boolean gameOver = false;
 
 
     private int turn = 0;
 
-    private void changeTurn() {
+    private synchronized void changeTurn() {
         turn = 1 - turn;
     }
 
@@ -54,15 +53,13 @@ public class GameRoom {
             return false;
         }
         if (chessBoard.occupy(x, y, color)) {
+            changeTurn();
             gameOver = chessBoard.checkWin(x, y);
             return true;
         }
         return false;
     }
 
-    public boolean isStarted() {
-        return started;
-    }
 
     public boolean isGameOver() {
         return gameOver;
@@ -72,10 +69,8 @@ public class GameRoom {
         return chessBoard.getWin();
     }
 
-
     public GameRoomInfo getRoomInfo() {
-        return new GameRoomInfo(roomId, owner, challenger, state);
+        return new GameRoomInfo(roomId, owner, challenger, gameState);
     }
-
 
 }

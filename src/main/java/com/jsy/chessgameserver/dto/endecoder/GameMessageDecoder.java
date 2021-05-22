@@ -1,6 +1,6 @@
 package com.jsy.chessgameserver.dto.endecoder;
 
-import com.jsy.chessgameserver.dto.chess.GameMessage;
+import com.jsy.chessgameserver.dto.GameMessage;
 import com.jsy.chessgameserver.util.JsonUtil;
 
 import javax.websocket.DecodeException;

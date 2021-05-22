@@ -1,13 +1,14 @@
 package com.jsy.chessgameserver.controller;
 
 import com.jsy.chessgameserver.dto.chess.ChessOperation;
-import com.jsy.chessgameserver.dto.chess.GameMessage;
+import com.jsy.chessgameserver.dto.GameMessage;
 import com.jsy.chessgameserver.dto.endecoder.GameMessageDecoder;
 import com.jsy.chessgameserver.dto.endecoder.GameMessageEncoder;
 import com.jsy.chessgameserver.service.chess.GameRoom;
 import com.jsy.chessgameserver.service.GameRoomService;
 import com.jsy.chessgameserver.websocket.TopicEndpoint;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -16,6 +17,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 
 /**
  * @Author: Song yang Ji
@@ -23,7 +25,9 @@ import javax.websocket.server.ServerEndpoint;
  * @Version 1.0
  * @Description:
  */
-@ServerEndpoint(value = "/topic/{roomId}",
+
+@Slf4j
+@ServerEndpoint(value = "/topic/game/{roomId}",
         decoders = {
                 GameMessageDecoder.class},
         encoders = {
@@ -36,23 +40,36 @@ public class ChessGameSocketController extends TopicEndpoint {
 
     public GameRoom gameRoom;
 
+
     @OnOpen
     @Override
     public void open(@PathParam("roomId") @NonNull String roomId, Session session) {
         super.open(roomId, session);
         gameRoom = gameRoomService.getRoom(roomId);
+        if (gameRoom == null) {
+            try {
+                session.close();
+            } catch (IOException e) {
+                log.error("session {} roomId 连接失败_{}", session, e.getMessage(), e);
+            }
+        }
     }
 
     @OnMessage
     public void broker(GameMessage message) {
+        log.info("收到消息 {}", message);
+        if (!message.getRoomId().equals(gameRoom.getRoomId())) {
+            return;
+        }
+        String id = gameRoom.getRoomId();
         switch (message.getOpt()) {
             //  请求移动
             case MOVE:
                 if (gameRoom.playChess(message.getDot())) {
-                    GameMessage stepMessage = new GameMessage(message.getDot(), message.getRole(), ChessOperation.STEP);
-                    broker(stepMessage);
+                    GameMessage stepMessage = new GameMessage(id, message.getDot(), message.getRole(), ChessOperation.STEP);
+                    broadcastMessage(stepMessage);
                     if (gameRoom.isGameOver()) {
-                        GameMessage overMessage = new GameMessage(null, message.getRole(), ChessOperation.OVER);
+                        GameMessage overMessage = new GameMessage(id, null, message.getRole(), ChessOperation.OVER);
                         broadcastMessage(overMessage);
                     }
                 }
@@ -62,11 +79,11 @@ public class ChessGameSocketController extends TopicEndpoint {
             default:
                 break;
         }
-        broadcastMessage(message);
+//        broadcastMessage(message);
     }
 
     @Autowired
-    public static void setGameRoomService(GameRoomService gameRoomService) {
+    public void setGameRoomService(GameRoomService gameRoomService) {
         ChessGameSocketController.gameRoomService = gameRoomService;
     }
 }

@@ -1,6 +1,7 @@
 package com.jsy.chessgameserver.controller;
 
 import com.jsy.chessgameserver.dto.chess.Role;
+import com.jsy.chessgameserver.dto.chess.GameRoomInfo;
 import com.jsy.chessgameserver.service.GameRoomService;
 import com.jsy.chessgameserver.service.chess.GameRoom;
 import org.springframework.http.ResponseEntity;
@@ -20,25 +21,34 @@ import java.util.List;
 @RequestMapping("/game")
 public class ChessGameController {
 
-    @Resource(name = "GameRoomPool")
+    @Resource(name = "gameRoomService")
     GameRoomService gameRoomService;
 
     @GetMapping("/room")
     public ResponseEntity<String> createRoom() {
-        return ResponseEntity.ok(gameRoomService.createRoom());
+        String roomId = gameRoomService.createRoom();
+        if (roomId != null) {
+            return ResponseEntity.ok(roomId);
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/room/room-list")
-    public ResponseEntity<List<GameRoom.RoomInfo>> getRoomList() {
+    public ResponseEntity<List<GameRoomInfo>> getRoomList() {
         return ResponseEntity.ok(gameRoomService.getRoomList());
     }
 
-    @PostMapping("/room/{roomId}")
+    @PostMapping("/room/role/{roomId}")
     public ResponseEntity<String> setGameRole(@RequestBody Role role, @PathVariable String roomId) {
-        if(gameRoomService.getRoom(roomId) == null){
+        if (gameRoomService.getRoom(roomId) == null) {
             return ResponseEntity.badRequest().body("无此房间");
         }
         GameRoom gameRoom = gameRoomService.getRoom(roomId);
+
+        if (role.getUid() == null) {
+            return ResponseEntity.badRequest().body("游客ID不可为空");
+        }
+
         if (role.getTurn() == 0) {
             gameRoom.setOwner(role);
             return ResponseEntity.ok().body("擂主身份");

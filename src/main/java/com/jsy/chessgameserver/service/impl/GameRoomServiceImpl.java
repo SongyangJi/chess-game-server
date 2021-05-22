@@ -1,6 +1,6 @@
 package com.jsy.chessgameserver.service.impl;
 
-import com.jsy.chessgameserver.dto.chess.Role;
+import com.jsy.chessgameserver.dto.chess.GameRoomInfo;
 import com.jsy.chessgameserver.service.chess.GameRoom;
 import com.jsy.chessgameserver.service.GameRoomService;
 import com.jsy.chessgameserver.util.SpringUtils;
@@ -20,21 +20,21 @@ import java.util.concurrent.PriorityBlockingQueue;
  * @Description:
  */
 
-@Service("GameRoomPool")
+@Service("gameRoomService")
 @Slf4j
 public class GameRoomServiceImpl implements GameRoomService {
 
-    PriorityBlockingQueue<String> queue;
+    PriorityBlockingQueue<Integer> queue;
 
     Map<String, GameRoom> repository;
 
     public GameRoomServiceImpl() {
         queue = new PriorityBlockingQueue<>();
-        for (int i = 1; i <= 10; i++) {
-            queue.offer(String.valueOf(i));
+        for (int i = 1; i <= 100; i++) {
+            queue.offer(i);
         }
         repository = new ConcurrentHashMap<>();
-        log.info("GameRoomPool实例创建");
+        log.info("gameRoomService实例创建");
     }
 
     @Override
@@ -44,7 +44,8 @@ public class GameRoomServiceImpl implements GameRoomService {
 
     @Override
     public String createRoom() {
-        String roomId = queue.poll();
+        Integer id = queue.poll();
+        String roomId = id != null ? String.valueOf(id) : null;
         if (roomId != null) {
             GameRoom gameRoom = SpringUtils.getBean(GameRoom.class);
             assert gameRoom != null;
@@ -55,12 +56,14 @@ public class GameRoomServiceImpl implements GameRoomService {
     }
 
     @Override
-    public List<GameRoom.RoomInfo> getRoomList() {
-        var list = new ArrayList<GameRoom.RoomInfo>();
+    public List<GameRoomInfo> getRoomList() {
+        var list = new ArrayList<GameRoomInfo>();
         repository.values().forEach(gameRoom -> list.add(gameRoom.getRoomInfo()));
-        var roomInfo = new GameRoom.RoomInfo("room1",new Role("","张三",0),null);
 //        System.out.println(roomInfo);
-        list.add(roomInfo);
+//        list.add(new GameRoomInfo("room1", new Role("", "张三", 0), new Role("", "李四", 1), State.READY));
+//        list.add(new GameRoomInfo("room2", new Role("", "张三", 0), new Role("", "李四", 1), State.START));
+//        list.add(new GameRoomInfo("room3", new Role("", "张三", 0), new Role("", "李四", 1), State.FINISH));
+//        list.add(new GameRoomInfo("room4", new Role("", "张三", 0), new Role("", "李四", 1), State.RUNNING));
         return list;
     }
 }
