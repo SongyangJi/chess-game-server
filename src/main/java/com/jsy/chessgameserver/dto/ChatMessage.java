@@ -12,32 +12,36 @@ import java.util.Date;
  * @Description:
  */
 
-@ToString
 @Getter
 @Setter
 @NoArgsConstructor
 public class ChatMessage extends Message {
-    private String message;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date date;
 
-    public ChatMessage(String from, String to, String message, Date date) {
-        super(from, to);
-        this.message = message;
-        this.date = date;
-    }
+    private String sender;
 
-    public ChatMessage(String from, String to, String message) {
-        super(from, to);
-        this.message = message;
-        this.date = new Date();
+    private String content;
+
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone = "GMT+8")
+    private Date time;
+
+    @Override
+    public String toString() {
+        return "ChatMessage{" +
+                "sender='" + sender + '\'' +
+                ", content='" + content + '\'' +
+                ", time=" + time +
+                ", from='" + from + '\'' +
+                ", to='" + to + '\'' +
+                '}';
     }
 }
 
 /*
 {
+  "sender": "",
+  "content": "",
+  "time": "2021-05-28 04:23:18",
   "from": "",
-  "to": "",
-  "message": ""
+  "to": ""
 }
  */
