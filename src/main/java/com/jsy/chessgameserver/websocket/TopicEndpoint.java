@@ -1,6 +1,8 @@
 package com.jsy.chessgameserver.websocket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jsy.chessgameserver.dto.Message;
+import com.jsy.chessgameserver.util.JsonUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,13 +35,14 @@ public abstract class TopicEndpoint {
     protected static final Map<String, Room> rooms = new ConcurrentHashMap<>();
 
     @OnOpen
-    public void open(@PathParam("room") @NonNull String roomId, Session session) {
+    public void open(@PathParam("roomId") @NonNull String roomId, Session session) {
         log.info("TopicEndpoint bean is {}", this);
+        this.roomId = roomId;
         if (!rooms.containsKey(roomId)) {
             room = RoomPool.acquireRoom(roomId);
             if (room != null) {
                 rooms.put(roomId, room);
-                this.roomId = roomId;
+
             }
         } else {
             room = rooms.get(roomId);
@@ -89,6 +92,13 @@ public abstract class TopicEndpoint {
 
     protected void broadcastMessage(Message message) {
         room.broadcast(message);
+    }
+
+    public static void broadcastMessage(String roomId, Message message) throws JsonProcessingException {
+        Room room = rooms.get(roomId);
+        if (room != null) {
+            room.broadcast(JsonUtil.stringfy(message));
+        }
     }
 
 }
