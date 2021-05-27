@@ -1,9 +1,15 @@
 package com.jsy.chessgameserver.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jsy.chessgameserver.dto.GameMessage;
+import com.jsy.chessgameserver.dto.chess.ChessOperation;
 import com.jsy.chessgameserver.dto.chess.GameRoomInfo;
+import com.jsy.chessgameserver.dto.chess.Role;
+import com.jsy.chessgameserver.dto.chess.State;
 import com.jsy.chessgameserver.service.chess.GameRoom;
 import com.jsy.chessgameserver.service.GameRoomService;
 import com.jsy.chessgameserver.util.SpringUtils;
+import com.jsy.chessgameserver.websocket.TopicEndpoint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -60,10 +66,28 @@ public class GameRoomServiceImpl implements GameRoomService {
         var list = new ArrayList<GameRoomInfo>();
         repository.values().forEach(gameRoom -> list.add(gameRoom.getRoomInfo()));
 //        System.out.println(roomInfo);
-//        list.add(new GameRoomInfo("room1", new Role("", "张三", 0), new Role("", "李四", 1), State.READY));
-//        list.add(new GameRoomInfo("room2", new Role("", "张三", 0), new Role("", "李四", 1), State.START));
-//        list.add(new GameRoomInfo("room3", new Role("", "张三", 0), new Role("", "李四", 1), State.FINISH));
-//        list.add(new GameRoomInfo("room4", new Role("", "张三", 0), new Role("", "李四", 1), State.RUNNING));
+//        for(int i = 0;i<20;i++) {
+//            list.add(new GameRoomInfo("room"+i, new Role("", "张三", 0), new Role("", "李四", 1),null));
+//        }
         return list;
+    }
+
+    @Override
+    public boolean setReadyStateOfRoomRole(String roomId, Role role) {
+        GameRoom gameRoom = repository.get(roomId);
+        gameRoom.setReadyState(role);
+        // 如果双方都准备好，才可以下棋
+        if (gameRoom.getGameState().getState() == State.RUNNING) {
+            GameMessage gameMessage = new GameMessage(roomId, null, null, ChessOperation.START);
+            try {
+                TopicEndpoint.broadcastMessage(roomId, gameMessage);
+            } catch (JsonProcessingException e) {
+//                e.printStackTrace();
+                log.warn("信息发送失败");
+                return false;
+            }
+            log.info("房间 roomId {} 游戏开始", roomId);
+        }
+        return true;
     }
 }

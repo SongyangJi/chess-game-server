@@ -1,6 +1,7 @@
 package com.jsy.chessgameserver.service;
 
 import com.jsy.chessgameserver.dto.chess.GameRoomInfo;
+import com.jsy.chessgameserver.dto.chess.Role;
 import com.jsy.chessgameserver.service.chess.GameRoom;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public interface GameRoomService {
     String createRoom();
 
     List<GameRoomInfo> getRoomList();
+
+    boolean setReadyStateOfRoomRole(String roomId, Role role);
 
 }
 

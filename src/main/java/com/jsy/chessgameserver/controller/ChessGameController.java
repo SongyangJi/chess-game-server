@@ -24,6 +24,11 @@ public class ChessGameController {
     @Resource(name = "gameRoomService")
     GameRoomService gameRoomService;
 
+    /**
+     * 玩家创建房间
+     *
+     * @return
+     */
     @GetMapping("/room")
     public ResponseEntity<String> createRoom() {
         String roomId = gameRoomService.createRoom();
@@ -33,11 +38,23 @@ public class ChessGameController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 获取大厅的房间列表
+     *
+     * @return
+     */
     @GetMapping("/room/room-list")
     public ResponseEntity<List<GameRoomInfo>> getRoomList() {
         return ResponseEntity.ok(gameRoomService.getRoomList());
     }
 
+    /**
+     * 设置某个对局房间的玩家身份
+     *
+     * @param role
+     * @param roomId
+     * @return
+     */
     @PostMapping("/room/role/{roomId}")
     public ResponseEntity<String> setGameRole(@RequestBody Role role, @PathVariable String roomId) {
         if (gameRoomService.getRoom(roomId) == null) {
@@ -58,6 +75,11 @@ public class ChessGameController {
         } else {
             return ResponseEntity.badRequest().body("角色类型错误");
         }
+    }
+
+    @PostMapping("/room/{roomId}")
+    public ResponseEntity<Boolean> setReadyState(@RequestBody Role role, @PathVariable String roomId) {
+        return ResponseEntity.ok(gameRoomService.setReadyStateOfRoomRole(roomId, role));
     }
 
 }
