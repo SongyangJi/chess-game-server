@@ -17,10 +17,19 @@ import java.util.Arrays;
 @Scope("prototype")
 public class ChessBoard {
     private static final int SIZE = 15;
+
     private final int[][] g;
+
+    private int turn;
 
     @Getter
     private int win = -1;
+
+    private synchronized void changeTurn() {
+        turn = 1 - turn;
+    }
+
+
 
     public ChessBoard() {
         g = new int[SIZE][SIZE];
@@ -31,11 +40,15 @@ public class ChessBoard {
 
 
     boolean occupy(int x, int y, int color) {
+        if(turn != color) {
+            return false;
+        }
         if(win != -1) return false;
         if (g[x][y] != -1) {
             return false;
         }
         g[x][y] = color;
+        changeTurn();
         return true;
     }
 
